@@ -10,7 +10,7 @@ if [[ -f venv/bin/activate ]]; then
 fi
 
 echo "[*] Installing dependencies"
-python3 -m pip install -r requirements.txt
+python3 -m pip install mkdocs mkdocs-material
 
 # Install the pip package
 python3 -m pip install .

@@ -126,9 +126,6 @@ plugins:
     default_css: true
     offline: false
     default_search_mode: substr-i
-    exclude_language_list:
-    - python
-    - bash
     search_page_path: ""
     search_page_create_if_missing: false
     search_page_section_name: Code Snippet Search
@@ -163,11 +160,6 @@ When set to `true` the listing data is included into the JavaScript file.
 This way it can be used even when the site if opened from the file system (via a `file://` URL).
 The disadvantage is that the loading of the script will take longer and the data is not loaded asynchronously, so the loading of the page via the Internet will be delayed.
 Because of that it is set to `false` by default.
-
-### exclude_language_list
-
-Ignore any listings that are in the given languages.
-They will not appear on the all listings page or in the listings search.
 
 ### default_search_mode
 

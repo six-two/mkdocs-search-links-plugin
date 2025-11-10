@@ -22,12 +22,11 @@ class ListingsConfig(Config):
     default_css = Type(bool, default=True)
     offline = Type(bool, default=False)
     javascript_search_file = Type(str, default="assets/javascript/code-snippet-search.js")
-    exclude_language_list = ListOfItems(Type(str), default=[])
-    default_search_mode = Choice(["substr", "substr-i", "words", "words-i", "glob", "glob-i", "fuzzy"], default="substr-i")
+    default_search_mode = Choice(["substr", "words", "glob", "fuzzy"], default="substr")
     # Add page options
     search_page_path = Type(str, default="") # append search snippet to the given page if this option is set
     search_page_create_if_missing = Type(bool, default=False) # if the page does not exist, create it and add it to the nav
-    search_page_section_name = Type(str, default="Code Snippet Search") # the title of the page or section to create
+    search_page_section_name = Type(str, default="Link Search") # the title of the page or section to create
 
 
 # local
