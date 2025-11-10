@@ -1,0 +1,42 @@
+site_name: My Docs
+use_directory_urls: true
+
+plugins:
+- search
+- search_links:
+    listings_file: plugin/all-listings.md
+    placeholder: CUSTOM_PLACEHOLDER_FOR_THE_LISTINGS_PLUGIN
+    javascript_search_file: some-path/listing-search.js
+    default_css: true
+    offline: false
+    # exclude_language_list: [text, bash, mermaid]
+    default_search_mode: glob
+    # Add search page
+    search_page_path: plugin/index.md
+    search_page_create_if_missing: True
+    search_page_section_name: Dynamically Inserted Code Snippet Search
+
+
+# nav:
+# - index.md
+
+theme:
+  name: material
+  features:
+  - content.code.copy
+
+site_url: https://mkdocs-search-links-plugin.six-two.dev/test/123/456/7890
+
+# https://squidfunk.github.io/mkdocs-material/reference/code-blocks/
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format

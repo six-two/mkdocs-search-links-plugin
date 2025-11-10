@@ -1,0 +1,3 @@
+include README.md
+include src/mkdocs_search_links_plugin/listing-search.js
+include src/mkdocs_search_links_plugin/default.css
