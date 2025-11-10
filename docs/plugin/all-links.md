@@ -3,8 +3,8 @@ hide:
 - toc
 ---
 
-# All listings
+# All links
 
-This page has a static list of all listings.
+This page has a static list of all links.
 
 CUSTOM_PLACEHOLDER_FOR_THE_LISTINGS_PLUGIN

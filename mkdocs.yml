@@ -4,7 +4,7 @@ use_directory_urls: true
 plugins:
 - search
 - search_links:
-    listings_file: plugin/all-listings.md
+    listings_file: plugin/all-links.md
     placeholder: CUSTOM_PLACEHOLDER_FOR_THE_LISTINGS_PLUGIN
     javascript_search_file: some-path/listing-search.js
     default_css: true

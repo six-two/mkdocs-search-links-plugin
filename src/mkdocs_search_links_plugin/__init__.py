@@ -32,7 +32,7 @@ class ListingsConfig(Config):
 
 # local
 from .page_processor import PageProcessor
-from .all_listings_page import update_all_listings_page
+from .all_links_page import update_all_links_page
 from .search_page import write_javascript_file, get_javascript_file_source_code
 
 
@@ -150,12 +150,12 @@ class ListingsPlugin(BasePlugin[ListingsConfig]):
             # Can not be cached, since script paths are dependent on current page path
             # https://www.mkdocs.org/dev-guide/themes/#page
             # https://www.mkdocs.org/dev-guide/api/#mkdocs.structure.files.File.src_uri
-            inline_script_html = '<div id="listing-extract-search"></div>\n<script>\n' + get_javascript_file_source_code(self.page_processor.page_data_list, self.config, True, page.file.src_uri, config) + '\n</script>'
+            inline_script_html = '<div id="listing-extract-search"></div>\n<script>\n' + get_javascript_file_source_code(self.page_processor.links, self.config, True, page.file.src_uri, config) + '\n</script>'
             output = output.replace("PLACEHOLDER_INLINE_LISTINGS_SEARCH_PLUGIN", inline_script_html)
         return output
 
     def on_post_build(self, config: MkDocsConfig) -> None:
-        update_all_listings_page(self.page_processor.page_data_list, self.config, config)
+        update_all_links_page(self.page_processor.links, self.config, config)
 
         if self.config.javascript_search_file:
             write_javascript_file(self.page_processor.page_data_list, self.config, config)

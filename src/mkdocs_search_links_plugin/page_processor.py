@@ -2,27 +2,23 @@ from typing import NamedTuple
 from mkdocs.structure.pages import Page
 # local
 from . import logger, ListingsConfig
-from .html_parser import ListingData, parse_listings_from_html
+from .html_parser import LinkData, parse_links_from_html
 
-class PageData(NamedTuple):
-    page_name: str
-    page_url: str
-    listings: list[ListingData]
+# class PageData(NamedTuple):
+#     page_name: str
+#     page_url: str
+#     links: list[LinkData]
 
 
 class PageProcessor:
     def __init__(self, plugin_config: ListingsConfig):
-        self.page_data_list: list[PageData] = []
+        self.links: list[LinkData] = []
         self.plugin_config = plugin_config
 
     def process_page(self, html: str, page: Page):
-        if listings := parse_listings_from_html(html):
-            listings = [x for x in listings if x.language not in self.plugin_config.exclude_language_list]
-            self.page_data_list.append(PageData(
-                page_name=page.title or "Untitled page",
-                page_url=get_page_url(page),
-                listings=listings,
-            ))
+        if links := parse_links_from_html(html, page.url):
+            # links = [x for x in listings if x.language not in self.plugin_config.exclude_language_list]
+            self.links += links
 
     def clear(self):
         self.page_data_list = []

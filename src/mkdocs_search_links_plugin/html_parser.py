@@ -1,9 +1,20 @@
-from typing import NamedTuple
-# pip
-from bs4 import BeautifulSoup
+##### This code is heavily based on my mkdocs-backlinks-section-plugin #####
+from typing import NamedTuple, Optional
+from html.parser import HTMLParser
+import re
+from urllib.parse import unquote
+from html import unescape
 
 # local
 from . import logger
+
+# Regular expression for anchor tags (excludes autoref tags)
+LINK_START_TAG_REGEX = re.compile(r"<a(?:\s[^>]*)?>", re.MULTILINE)
+
+class LinkData(NamedTuple):
+    text: str
+    href: str
+
 
 class ListingData(NamedTuple):
     text: str
@@ -11,48 +22,75 @@ class ListingData(NamedTuple):
     language: str # empty string if not set
 
 
-def parse_listings_from_html(html: str) -> list[ListingData]:
-    listings = []
-    soup = BeautifulSoup(html, "html.parser")
+def parse_links_from_html(html: str, page_name: str) -> list[LinkData]:
+    results = []
+    for link_start_tag in LINK_START_TAG_REGEX.findall(html):
+        link_data = parse_data_from_anchor_tag(link_start_tag, page_name)
+        if link_data and is_external_link(link_data.href, page_name):
+            results.append(link_data)
 
-    for pre in soup.find_all('pre'):
-        if is_code_listing(pre):
-            listings.append(ListingData(
-                text=pre.get_text(),
-                html=str(pre),
-                language=get_code_listing_language(pre),
-            ))
-    return listings
+    return results
 
-
-def is_code_listing(pre_node) -> bool:
-    try:
-        for child in pre_node.children:
-            if child.name == "code":
-                return True
+def is_external_link(url: str, page_name: str) -> bool:
+    url = url.lower()
+    if url.startswith("http://") or url.startswith("https://"):
+        # Explicit link, likely to to self. @TODO: but we could check?
+        return True
+    elif url.startswith("/") or url.startswith(".") or url.startswith("#"):
+        # Relative link
         return False
-    except KeyError:
-        # No children -> no code listing
-        return False
-
-
-def get_code_listing_language(pre) -> str:
-    language = "" # empty = no language, the default
-    parent_with_highlight = pre.find_parent("div", class_="highlight")
-    if parent_with_highlight:
-        for class_ in parent_with_highlight.attrs.get("class", []):
-            if class_.startswith("language-"):
-                if language:
-                    logger.warn("[Warn] Multiple languages in class list:", parent_with_highlight.attrs.get("class", []))
-                    # Exit early, so that we do not show the message multiple times
-                    return language
-                else:
-                    language = class_.replace("language-", "", 1)
     else:
-        # Check if it is a mermaid diagram
-        for class_ in pre.attrs.get("class", []):
-            if class_ == "mermaid":
-                language = "mermaid"
+        first_path_element = url.split("/")[0]
+        if ":" not in first_path_element:
+            # Does not have a protocol, thus it is a relative link like "some-page.html"
+            return False
+
+        proto = url.split(":")[0]
+        if proto in ["tel", "smsto", "mailto", "javascript"]:
+            # Common protocol handlers
+            return False
+        
+        # If I am not sure what is going on, print a warning so I can investigate and properly categorize them later
+        # For now just ignore them
+        logger.info(f"On page '{page_name}' could not determine if URL is external: {url}")
+        return False
+
+# This should handle all edge cases properly, since it is a full HTML parser. But it luckily needs no external dependencies
+class AnchorHrefExtractor(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.href = ""
+        self.id = ""
+        self.text = ""
+        self.in_a_tag = False
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "a":
+            self.in_a_tag = True
+            for attr_name, attr_value in attrs:
+                if attr_name == "href":
+                    self.href = attr_value
+                if attr_name == "id":
+                    self.id = attr_value
     
-    return language
+    def handle_data(self, data):
+        if self.in_a_tag:
+            self.text += data.strip()
+
+    def handle_endtag(self, tag):
+        if tag == "a":
+            self.in_a_tag = False
+
+
+def parse_data_from_anchor_tag(anchor_tag: str, page_name: str) -> Optional[LinkData]:
+    parser = AnchorHrefExtractor()
+    parser.feed(anchor_tag)
+    if parser.href:
+        return LinkData(text=unescape(parser.text), href=unquote(parser.href))
+    elif parser.id and parser.id.startswith("__codelineno-"):
+        # These are created when you enable line numbers in listings (linenums="1"). We can silently ignore them
+        return None
+    else:
+        logger.warning(f"On page '{page_name}' an anchor tag has no href: {anchor_tag}")
+        return None
 

@@ -1,14 +1,15 @@
 import os
 from html import escape
+from urllib.parse import quote
 
 # pip
 from mkdocs.config.defaults import MkDocsConfig
 # local
-from .page_processor import PageData
+from .page_processor import LinkData
 from . import ListingsConfig
 
 
-def update_all_listings_page(page_data_list: list[PageData], plugin_config: ListingsConfig, config: MkDocsConfig) -> None:
+def update_all_links_page(page_data_list: list[LinkData], plugin_config: ListingsConfig, config: MkDocsConfig) -> None:
     # We write the data in post-build -> listings should not be re-indexed and all pages were processed
     if plugin_config.listings_file:
         path = os.path.join(config.site_dir, plugin_config.listings_file)
@@ -24,24 +25,21 @@ def update_all_listings_page(page_data_list: list[PageData], plugin_config: List
             f.write(html)
 
 
-def get_listings_html(page_data_list: list[PageData], plugin_config: ListingsConfig, config: MkDocsConfig, relative_path_to_markdown_file: str) -> str:
-    html = ""
-    if plugin_config.default_css:
-        html += '<style>a.url { color: gray; font-size: small; display: block; }</style>'
-
-    path_to_base_url = "../" * relative_path_to_markdown_file.count("/")
-    if config.use_directory_urls:
-        path_to_base_url += "../"
-    for p in page_data_list:
-        relative_path = p.page_url
-
-        html += f'<h2><a class="heading" href="{escape(path_to_base_url + relative_path)}">{escape(p.page_name)}</a></h2>'
-        html += f'<a class="url" href="{escape(path_to_base_url + relative_path)}">{escape(relative_path)}</a>'
-        for listing in p.listings:
-            html += listing.html
+def get_listings_html(link_data_list: list[LinkData], plugin_config: ListingsConfig, config: MkDocsConfig, relative_path_to_markdown_file: str) -> str:
+    html = "<ul>"
+    for link in link_data_list:
+        text = link.text or link.href
+        html += f'<li><a href="{quote_url_without_breaking_it(link.href)}">{escape(text)}</a>'
+    html += "</ul>"
 
     return html
 
+
+def quote_url_without_breaking_it(url):
+    url = quote(url)
+    # Links like https%3A//example.com are interpreted as relative links, so we need to unescape it here
+    url = url.replace("%3A", ":").replace("%3a", ":")
+    return url
 
 def markdown_path_to_html_path(config: MkDocsConfig, markdown_path: str) -> str:
     if markdown_path.endswith(".md"):
