@@ -17,10 +17,39 @@ class PageProcessor:
 
     def process_page(self, html: str, page: Page):
         if links := parse_links_from_html(html, page.url):
-            self.links += links # @TODO: remove duplicates, check case, etc
+            self.links += links 
+
+    def processed_all_pages(self) -> None:
+        self.links = remove_duplicates_ignore_case_and_proto(self.links)
+        self.links = sorted(self.links, key=lambda x: normalize_url(x.href))
 
     def clear(self):
         self.links = []
+
+def remove_duplicates_ignore_case_and_proto(links):
+    seen = {}
+    for link in links:
+        key = normalize_url(link.href)
+        if key not in seen:
+            seen[key] = link  # store original capitalization
+        else:
+            stored = seen[key].href.lower()
+            new = link.href.lower()
+            if stored.startswith("http://") and new.startswith("https://"):
+                # Prefer HTTPS links over HTTP
+                seen[key] = link
+    return list(seen.values())
+
+
+def normalize_url(url: str) -> str:
+    # Ignore case when sorting
+    url = url.lower()
+
+    # Pretend all links are using HTTPS for sake of sorting
+    if url.startswith("http://"):
+        url = "https://" + url[7:]
+
+    return url
 
 
 def get_page_url(page: Page) -> str:

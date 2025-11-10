@@ -146,6 +146,7 @@ class ListingsPlugin(BasePlugin[ListingsConfig]):
     # https://www.mkdocs.org/dev-guide/plugins/#on_post_page
     def on_post_page(self, output: str, page: Page, config: MkDocsConfig) -> str:
         if "PLACEHOLDER_INLINE_LINK_SEARCH_PLUGIN" in output:
+            self.page_processor.processed_all_pages()
             # Can not be cached, since script paths are dependent on current page path
             # https://www.mkdocs.org/dev-guide/themes/#page
             # https://www.mkdocs.org/dev-guide/api/#mkdocs.structure.files.File.src_uri
@@ -154,6 +155,7 @@ class ListingsPlugin(BasePlugin[ListingsConfig]):
         return output
 
     def on_post_build(self, config: MkDocsConfig) -> None:
+        self.page_processor.processed_all_pages()
         update_all_links_page(self.page_processor.links, self.config, config)
 
         if self.config.javascript_search_file:
