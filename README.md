@@ -1,6 +1,10 @@
 # mkdocs-search-links-plugin
 
-A small plugin to extract all your listings and put them in a single page.
+A small plugin to extract all your links and put them in a single page.
+
+
+# TODO: Anything below this is not updated yet
+
 It can also generate a search function of code listings with different search methods (fuzzy match, substring, contains words).
 
 ## Demo

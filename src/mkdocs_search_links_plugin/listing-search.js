@@ -6,7 +6,7 @@
 // How many results to show as a preview while changing the search query.
 // This limits load required to parse entries, etc and should result in the user getting some quick feedback on his/her search
 (() => {
-PREVIEW_RESULTS = 15;
+PREVIEW_RESULTS = 25;
 DEFAULT_SEARCH_MODE=null;
 // START: These values may be overwritten when the file is copied by the plugin
 STYLE=``;
@@ -82,13 +82,10 @@ if (parent) {
         search_type.append(entry);
     }
 
-    add_search_type("substr", "Exact match");
-    add_search_type("substr-i", "Exact match (case insensitive)");
-    add_search_type("words", "Contains words");
-    add_search_type("words-i", "Contains words (case insensitive)");
+    add_search_type("substr", "Exact match (case insensitive)");
+    add_search_type("words", "Contains words (case insensitive)");
     add_search_type("glob", "Matches blobs ('*'=any sequence of characters, '?'=any character)");
-    add_search_type("glob-i", "Matches blobs (case insensitive)");
-    add_search_type("fuzzy", "Fuzzy search (always case insensitive)");
+    add_search_type("fuzzy", "Fuzzy search (case insensitive)");
 
     default_index = search_type_list.indexOf(search_mode);
     if (default_index != -1) {
@@ -96,24 +93,13 @@ if (parent) {
     } else {
         console.warn(`The search order type '${search_mode}' is unknown. Valid values are ${search_type_list}`)
     }
-    
-    const search_language = document.createElement("select");
-    const add_search_language = (name) => {
-        const entry = document.createElement("option");
-        entry.value = name;
-        entry.innerText = name;
-        search_language.append(entry);
-    }
-        
-    add_search_language("any") // default option
+            
 
     search_type.title = "The search algorithm to use";
-    search_language.title = "Only show snippets in this language";
 
     search_type.addEventListener("change", refresh_search_results);
-    search_language.addEventListener("change", refresh_search_results);
         
-    const search_input_line = add_div(null, "search-input-line", search_input, search_type, search_language);
+    const search_input_line = add_div(null, "search-input-line", search_input, search_type);
     add_div(parent, "search-inputs", search_input_line, search_count_div);
     const search_output = add_div(parent, "search-output");
     console.debug("Attached search to ", parent);
@@ -121,14 +107,9 @@ if (parent) {
 
     const set_search_results = (results) => {
         for (const result of results) {
-            const header = add_link(null, result.page_url, result.page_name, "heading");
-            const page_url = add_link(null, result.page_url, result.page_url, "url");
-
-            const div = document.createElement("div");
-            div.classList.add("listing");
-            div.innerHTML = result.html;
+            const header = add_link(null, result.href, result.text || result.href, "heading");
             
-            add_div(search_output, "search-result", header, page_url, div);
+            add_div(search_output, "search-result", header);
         }
     }
 
@@ -136,48 +117,31 @@ if (parent) {
         return text.match(/\b\w+\b/g) || [];
     }
 
-    const internal_search = (query, search_mode, filter_language) => {
+    const internal_search = (query, search_mode) => {
         // Handle the differences between case sensitive and insensitive search
-        let listings_list;
-        if (search_mode.endsWith("-i")) {
-            // Search mode without the -i
-            search_mode = search_mode.slice(0, -2);
-            // Use the lowercase versions of the query and the search data
-            query = query.toLowerCase();
-            listings_list = window.extract_listings_lowercase;
-        } else {
-            listings_list = window.extract_listings_case_sensitive;
-        }
-
-
-        // Handle the language filter
-        if (filter_language != "any") {
-            // We need to pre-filter the listings by the programming language
-            listings_list = listings_list.filter(x => x.language == filter_language);
-        }
-
+        let link_list = window.search_links_list;
 
         // Handle the different search modes
         if (search_mode == "substr") {
-            return listings_list.filter(x => x.text.includes(query));
+            return link_list.filter(x => x.href_lower.includes(query));
         } else if (search_mode == "words") {
             const query_words = get_words(query);
             if (query_words) {
-                return listings_list.filter(x => {
-                    const text_words = get_words(x.text);
+                return link_list.filter(x => {
+                    const text_words = get_words(x.href_lower);
                     return query_words.every(w => text_words.includes(w));
                 });
             } else {
                 // Empty search queries return all listings for all other search types, so we should do the same here
-                return listings_list;
+                return link_list;
             }
         } else if (search_mode == "glob") {
             query_regex = createRegexFromBlob(query);
             console.debug("Using regex:", query_regex);
-            return listings_list.filter(x => query_regex.test(x.text));
+            return link_list.filter(x => query_regex.test(x.href_lower));
         } else if (search_mode == "fuzzy") {
-            return fuzzysort.go(query, listings_list, {
-                "key": "text",
+            return fuzzysort.go(query, link_list, {
+                "key": "href_lower",
                 "all": true, // show all results when the query is empty
                 threshold: -10000, // prevent terrible results
             }).map(x => x.obj);
@@ -187,12 +151,10 @@ if (parent) {
         }
     }
 
-
     const search = (query, preview) => {
         const search_mode = search_type.value;
-        const filter_language = search_language.value;
-        console.debug(`Searching for '${query}' with method ${search_mode} and language ${filter_language}`);
-        const results = internal_search(query, search_mode, filter_language);
+        console.debug(`Searching for '${query}' with method ${search_mode}`);
+        const results = internal_search(query, search_mode);
 
         search_output.innerHTML = "";//remove children
 
@@ -214,20 +176,12 @@ if (parent) {
     const on_json_loaded = (json) => {
         // Publicly accessible for easier debugging
         // Remap the URLs based on the location of this script (which is in the same directory as the JSON file)
-        window.extract_listings_case_sensitive = json.map(x => ({...x, page_url: normalizeUrl(x.page_url)}));
-        // @TODO: maybe only cache this if an cae-insensitive mode is selected?
-        window.extract_listings_lowercase = window.extract_listings_case_sensitive.map(x => ({...x, text: x.text.toLowerCase()}));
-
-        let language_list = json.map(x => x.language);
-        // remove duplicates and sort alphabetically
-        language_list = [...new Set(language_list)].sort();
-        // register all languages for the dropdown menu
-        language_list.forEach(language => add_search_language(language));
-
-        if (language_list.length < 2) {
-            console.debug("It does not make sense to show the selector, since there is only one choice -> hiding language dropdown");
-            search_language.style.display = "none";
-        }
+        window.search_links_list = json.map(x => ({
+            href: x.href,
+            href_lower: x.href.toLowerCase(),
+            text: x.text,
+            // text_lower: x.text.toLowerCase(),
+        }));
 
         // As soon as all data is loaded, search for the current value
         // Use preview to prevent a self-DOS when there are many listings and the query is empty

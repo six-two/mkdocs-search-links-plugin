@@ -9,7 +9,7 @@ from .page_processor import LinkData
 from . import ListingsConfig
 
 
-def update_all_links_page(page_data_list: list[LinkData], plugin_config: ListingsConfig, config: MkDocsConfig) -> None:
+def update_all_links_page(link_data_list: list[LinkData], plugin_config: ListingsConfig, config: MkDocsConfig) -> None:
     # We write the data in post-build -> listings should not be re-indexed and all pages were processed
     if plugin_config.listings_file:
         path = os.path.join(config.site_dir, plugin_config.listings_file)
@@ -18,7 +18,7 @@ def update_all_links_page(page_data_list: list[LinkData], plugin_config: Listing
         with open(path, "r") as f:
             html = f.read()
 
-        listings_html_content = get_listings_html(page_data_list, plugin_config, config, plugin_config.listings_file)
+        listings_html_content = get_listings_html(link_data_list, plugin_config, config, plugin_config.listings_file)
         html = html.replace(plugin_config.placeholder, listings_html_content)
 
         with open(path, "w") as f:

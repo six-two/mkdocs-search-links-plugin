@@ -146,19 +146,19 @@ class ListingsPlugin(BasePlugin[ListingsConfig]):
 
     # https://www.mkdocs.org/dev-guide/plugins/#on_post_page
     def on_post_page(self, output: str, page: Page, config: MkDocsConfig) -> str:
-        if "PLACEHOLDER_INLINE_LISTINGS_SEARCH_PLUGIN" in output:
+        if "PLACEHOLDER_INLINE_LINK_SEARCH_PLUGIN" in output:
             # Can not be cached, since script paths are dependent on current page path
             # https://www.mkdocs.org/dev-guide/themes/#page
             # https://www.mkdocs.org/dev-guide/api/#mkdocs.structure.files.File.src_uri
             inline_script_html = '<div id="listing-extract-search"></div>\n<script>\n' + get_javascript_file_source_code(self.page_processor.links, self.config, True, page.file.src_uri, config) + '\n</script>'
-            output = output.replace("PLACEHOLDER_INLINE_LISTINGS_SEARCH_PLUGIN", inline_script_html)
+            output = output.replace("PLACEHOLDER_INLINE_LINK_SEARCH_PLUGIN", inline_script_html)
         return output
 
     def on_post_build(self, config: MkDocsConfig) -> None:
         update_all_links_page(self.page_processor.links, self.config, config)
 
         if self.config.javascript_search_file:
-            write_javascript_file(self.page_processor.page_data_list, self.config, config)
+            write_javascript_file(self.page_processor.links, self.config, config)
 
 
 def get_relative_path_from(current_page: Page, absolute_destination_link: str) -> str:

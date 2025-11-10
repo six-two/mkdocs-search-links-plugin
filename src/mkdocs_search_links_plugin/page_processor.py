@@ -18,10 +18,10 @@ class PageProcessor:
     def process_page(self, html: str, page: Page):
         if links := parse_links_from_html(html, page.url):
             # links = [x for x in listings if x.language not in self.plugin_config.exclude_language_list]
-            self.links += links
+            self.links += links # @TODO: remove duplicates, check case, etc
 
     def clear(self):
-        self.page_data_list = []
+        self.links = []
 
 
 def get_page_url(page: Page) -> str:

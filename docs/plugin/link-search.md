@@ -3,7 +3,7 @@ hide:
 - toc
 ---
 
-# Listing search
+# Link search
 
 This page has a search function for all listings.
 

@@ -3,7 +3,7 @@ import os
 # pip
 from mkdocs.config.defaults import MkDocsConfig
 # local
-from . import SCRIPT_DIR
+from . import SCRIPT_DIR, logger
 from .page_processor import LinkData
 
 
@@ -58,5 +58,4 @@ def get_json_data(link_data_list: list[LinkData], url_prefix: str) -> list[dict]
             "text": link.text,
             "href": link.href,
         })
-
     return json_data
