@@ -1,16 +1,20 @@
 # mkdocs-search-links-plugin
 
-A small plugin to extract all your links and put them in a single page.
+A small plugin to extract all your links and put them in a single page and/or adds a page where you can search through all your links.
+If you have many outgoing links this makes it easier to find them based on some words in the URL.
+For example if you remember that there was a GitHub project by GhostPack but do not remember its name or page, you could search for something like the following:
 
+- `github.com/GhostPack`
+- `ghostpack`
+- `/ghostpack/`
+- `github ghostpack`
 
-# TODO: Anything below this is not updated yet
-
-It can also generate a search function of code listings with different search methods (fuzzy match, substring, contains words).
+The search function supports different search methods (fuzzy match, substring, contains words).
 
 ## Demo
 
 You can try out the demo at <https://mkdocs-search-links-plugin.six-two.dev>.
-It is configured to offer both the search and all listings pages an uses the plugin with some common MkDocs themes (mkdocs, readthedocs, and material).
+It is configured to offer both the search and all links pages and uses the plugin with some common MkDocs themes (mkdocs, readthedocs, and material).
 The source for this demo is also in this repo (`mkdocs.yml`, `docs/` and `build.sh`).
 
 ## Setup
@@ -26,15 +30,15 @@ The source for this demo is also in this repo (`mkdocs.yml`, `docs/` and `build.
     ```yaml
     plugins:
     - search
-    - extract_listings
+    - search_links
     ```
 
     > If you have no `plugins` entry in your config file yet, you'll likely also want to add the `search` plugin. MkDocs enables it by default if there is no `plugins` entry set.
 
     More information about plugins in the [MkDocs documentation](http://www.mkdocs.org/user-guide/plugins/).
 
-3. Configure a page with all listings, a page with listing search, or both (see below).
-4. Optional: To properly detect which language a listing belongs to, you may have to add the following to your `mkdocs.yml` as described in the [Material for MkDocs page on code blocks](https://squidfunk.github.io/mkdocs-material/reference/code-blocks/):
+3. Configure a page with all links, a page with link search, or both (see below).
+4. Optional: To properly detect which language a link belongs to, you may have to add the following to your `mkdocs.yml` as described in the [Material for MkDocs page on code blocks](https://squidfunk.github.io/mkdocs-material/reference/code-blocks/):
     ```yaml
     markdown_extensions:
     - pymdownx.highlight:
@@ -47,19 +51,19 @@ The source for this demo is also in this repo (`mkdocs.yml`, `docs/` and `build.
     ```
 
 
-### Listing page
+### Link page
 
-Add a Markdown file for the page that will be filled with all the listings.
-In that file add the placeholder where the listings should be inserted.
+Add a Markdown file for the page that will be filled with all the links.
+In that file add the placeholder where the links should be inserted.
 Then reference that file and specify the placeholder like this in your `mkdocs.yml`:
 ```yaml
 plugins:
-- extract_listings:
-    listings_file: listings.md
-    placeholder: PLACEHOLDER_LISTINGS_PLUGIN
+- search_links:
+    listings_file: links.md
+    placeholder: PLACEHOLDER_LINKS_PLUGIN
 ```
 
-### Listing search
+### Link search
 
 #### Via mkdocs.yml
 
@@ -68,13 +72,13 @@ This is the simplest way and is recommended for most users:
 1. Set `search_page_path` in your plugin settings to either a page path (it can already exist, but does not need to):
     ```yaml
     plugins:
-    - extract_listings:
+    - search_links:
         search_page_path: plugin/index.md
     ```
 2. If the page does not exist and should be added by the plugin, then enable `search_page_create_if_missing`:
     ```yaml
     plugins:
-    - extract_listings:
+    - search_links:
         search_page_path: plugin/index.md
         search_page_create_if_missing: True
     ```
@@ -98,7 +102,7 @@ This should match the path you used in the previous step.
 
     ```yaml
     plugins:
-    - extract_listings:
+    - search_links:
         javascript_search_file: listing-search.js
     ```
 
@@ -115,7 +119,7 @@ Alternatively you can include the script and the data inline, but this can have 
 You can configure the plugin like this:
 ```yaml
 plugins:
-- extract_listings:
+- search_links:
     listings_file: listings.md
     placeholder: PLACEHOLDER_LISTINGS_PLUGIN
     javascript_search_file: listing-search.js
@@ -200,53 +204,7 @@ Alternatively you can put in a random value and will receive an warning message 
 
 ## Changelog
 
-### Version 0.2.1
 
-- Use a default value for `javascript_search_file`.
-- Fixed DeprecationWarning: Replaced `bs4.findAll` with `bs4.find_all`.
+### HEAD - Future Version 0.0.1
 
-### Version 0.2.0
-
-- Added `search_page_path`, `search_page_create_if_missing` and `search_page_section_name` settings, which allow adding a search page without touching any Markdown files
-- Added inline placeholder search mode: Use `PLACEHOLDER_INLINE_LISTINGS_SEARCH_PLUGIN` in a page to include the script and listings database inline into it.
-- Fixed issues with sites using an non-root base directory (`site_url` property in `mkdocs.yml`).
-- Added `default_search_mode` setting, which allows to set the default search mode.
-- Added `glob` and `glob-i` search modes.
-
-### Version 0.1.3
-
-- Added `exclude_language_list` option which excludes listings in the given languages from the search
-- Correctly recognize `mermaid` language when using MkDocs for Material
-- Hide the language selector when only one language exists
-
-### Version 0.1.2
-
-- Added a dropdown to filter snippets by language.
-
-### Version 0.1.1
-
-- Fix: Links incorrect if search page is not in the root directory.
-
-### Version 0.1.0
-
-- The plugin should now be able to work when served from `file://` URLs:
-    - Search JSON can be inlined to the script via `offline: true` setting.
-    - Use relative links on the `listings_file` page.
-- Improved the search code:
-    - Allow users to specify which matching mode the search uses by default.
-    - Added mode `Contains words (case insensitive)`.
-- Fixed crash when using `use_directory_urls: false` and not setting `listings_file`.
-
-### Version 0.0.4
-
-- Added styling for the search page and the option `default_css` to disable it.
-- Fixed bug: URL for index pages starts with `//`
-
-### Version 0.0.3
-
-- Added snippet search JavaScript and JSON file.
-- Changed default for `listings_file` to empty string.
-
-### Version 0.0.2
-
-- Fixed `Unknown path` being shown on with different themes (`readthedocs` and `material`)
+- Initial version based on [mkdocs-extract-listings-plugin](https://github.com/six-two/mkdocs-extract-listings-plugin) v0.2.1
