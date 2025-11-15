@@ -197,6 +197,6 @@ Alternatively you can put in a random value and will receive an warning message 
 ## Changelog
 
 
-### HEAD - Future Version 0.0.1
+### Version 0.1.0
 
 - Initial version based on [mkdocs-extract-listings-plugin](https://github.com/six-two/mkdocs-extract-listings-plugin) v0.2.1
