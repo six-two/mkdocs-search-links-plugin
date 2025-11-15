@@ -4,11 +4,6 @@ from mkdocs.structure.pages import Page
 from . import logger, ListingsConfig
 from .html_parser import LinkData, parse_links_from_html
 
-# class PageData(NamedTuple):
-#     page_name: str
-#     page_url: str
-#     links: list[LinkData]
-
 
 class PageProcessor:
     def __init__(self, plugin_config: ListingsConfig):
@@ -31,13 +26,14 @@ def remove_duplicates_ignore_case_and_proto(links):
     for link in links:
         key = normalize_url(link.href)
         if key not in seen:
-            seen[key] = link  # store original capitalization
+            seen[key] = link  # store value
         else:
             stored = seen[key].href.lower()
             new = link.href.lower()
+            # Prefer HTTPS links over HTTP
             if stored.startswith("http://") and new.startswith("https://"):
-                # Prefer HTTPS links over HTTP
                 seen[key] = link
+    # Return original values
     return list(seen.values())
 
 
@@ -51,19 +47,3 @@ def normalize_url(url: str) -> str:
 
     return url
 
-
-def get_page_url(page: Page) -> str:
-    page_url = page.url
-    # This SHOULD fix the duplicate slash display bug (like '//readthedocs/')
-    for _ in range(3):
-        page_url = page_url.replace("//", "/")
-
-    # Remove leading slash
-    if page_url.startswith("/"):
-        page_url = page_url[1:] or "index.html"
-
-    if page_url.startswith("http://") or page_url.startswith("https://"):
-        logger.warning(f"page_url is expected to be just a path, but it is a full URL: '{page_url}'")
-        # No clue if it can happen. If it can, I should parse the path from the URL (and maybe remove the base URL).
-    
-    return page_url
